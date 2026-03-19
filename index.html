@@ -683,22 +683,6 @@ section{position:relative;z-index:2}
 }
 .fnote{margin-top:26px;font-family:'Great Vibes',cursive;font-size:22px;color:var(--rose);opacity:.75}
 
-/* MUSIC FAB */
-#mfab{
-  position:fixed;bottom:20px;right:20px;z-index:100;
-  width:48px;height:48px;border-radius:50%;
-  background:linear-gradient(135deg,var(--rose),var(--rose2));
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;
-  box-shadow:0 4px 20px rgba(224,90,114,.45);
-  transition:transform .3s;
-  -webkit-tap-highlight-color:transparent;
-}
-#mfab:hover{transform:scale(1.12)}
-#mfab.spin{animation:mfspin 3s linear infinite}
-@keyframes mfspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
 @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 
 /* MOBILE */
@@ -710,6 +694,111 @@ section{position:relative;z-index:2}
   .bscene{height:220px}
   .fring{width:320px;height:320px}
 }
+
+/* ── FINAL LOVE PAGE ── */
+#lovePage{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:linear-gradient(135deg,#ffd6e0,#ffb3c1,#ffd6e0);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 2s ease;
+  text-align:center;
+  padding:40px;
+}
+#lovePage.show{
+  opacity:1;
+  visibility:visible;
+}
+.love-line1{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(22px,5vw,38px);
+  color:rgba(92,26,40,.6);
+  letter-spacing:3px;
+  margin-bottom:24px;
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity 1.2s ease, transform 1.2s ease;
+}
+.love-main{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(48px,14vw,130px);
+  font-weight:400;
+  font-style:italic;
+  line-height:1;
+  margin-bottom:20px;
+  opacity:0;
+  transform:scale(0.8);
+  transition:opacity 1.4s ease .4s, transform 1.4s cubic-bezier(.34,1.56,.64,1) .4s;
+  background:linear-gradient(135deg,#c93a55,#e85a78,#c93a55);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  background-size:200%;
+  animation:none;
+}
+.love-name{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(44px,12vw,110px);
+  color:var(--deep);
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity 1.2s ease .8s, transform 1.2s ease .8s;
+  margin-bottom:24px;
+}
+.love-emoji{
+  font-size:clamp(40px,10vw,80px);
+  opacity:0;
+  transform:scale(0);
+  transition:opacity .8s ease 1.4s, transform .8s cubic-bezier(.34,1.56,.64,1) 1.4s;
+}
+.love-hearts{
+  display:flex;gap:16px;margin-top:32px;
+  opacity:0;
+  transition:opacity 1s ease 1.8s;
+}
+.love-hearts span{
+  font-size:28px;
+  animation:lovePulse var(--t,1.8s) ease-in-out infinite var(--d,0s);
+}
+@keyframes lovePulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.3)}
+}
+#lovePage.show .love-line1,
+#lovePage.show .love-main,
+#lovePage.show .love-name,
+#lovePage.show .love-emoji,
+#lovePage.show .love-hearts{
+  opacity:1;
+  transform:none;
+}
+#lovePage.show .love-main{
+  transform:scale(1);
+  animation:gshift 4s ease infinite;
+}
+
+.pre-volume-hint{
+  margin-top:14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,.4);
+  border:1px solid rgba(139,42,58,.2);
+  border-radius:30px;
+  padding:8px 18px;
+  font-size:11px;
+  letter-spacing:2px;
+  color:rgba(92,26,40,.65);
+  backdrop-filter:blur(4px);
+  animation:fadeUp .8s ease both 1s, volumePulse 2.5s ease-in-out infinite 2s;
+}
+
 </style>
 </head>
 <body>
@@ -795,6 +884,7 @@ section{position:relative;z-index:2}
 
   <div class="pre-divider"><span>♡</span></div>
   <p class="tap-hint">tap the heart to open</p>
+  <div class="volume-hint">🔊 &nbsp; Turn up your volume for the full experience &nbsp; 🎵</div>
   <div class="pre-hearts-row">
     <span style="--t:1.6s;--d:0s">💕</span>
     <span style="--t:2s;--d:.3s">♡</span>
@@ -1081,7 +1171,6 @@ section{position:relative;z-index:2}
 </section>
 
 </div><!-- #site -->
-<button id="mfab" onclick="toggleMusic()" title="Music">🎵</button>
 
 <script>
 // ══ CURSOR ══
@@ -1669,12 +1758,26 @@ function bigCelebrate(){
   btn.classList.add('fired');
   btn.disabled=true;
   btn.textContent='🎊  Happy Birthday!!  🎊';
-  // all effects EXCEPT birthday text zoom
   fxFlash();
   fxWords();
   fxConfettiBalloons();
   fxStars();
   fxFireworks();
+  // show love page after all effects finish (~9s)
+  setTimeout(()=>{
+    const page=document.getElementById('lovePage');
+    page.classList.add('show');
+    // burst hearts on the love page
+    setTimeout(()=>{
+      for(let b=0;b<6;b++){
+        setTimeout(()=> spawnBurst(
+          Math.random()*innerWidth,
+          Math.random()*innerHeight,
+          40
+        ),b*400);
+      }
+    },1000);
+  }, 9000);
 }
 
 // ══ SCROLL REVEAL ══
@@ -1686,40 +1789,13 @@ document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach((el,i)=>
 });
 
 // ══ MUSIC ══
-let aCtx=null,playing=false,lto=null;
-function buildMusic(){
-  aCtx=new(window.AudioContext||window.webkitAudioContext)();
-  const master=aCtx.createGain();master.gain.value=.05;
-  const rv=aCtx.createConvolver();
-  const rb=aCtx.createBuffer(2,aCtx.sampleRate*3,aCtx.sampleRate);
-  for(let c=0;c<2;c++){const d=rb.getChannelData(c);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);}
-  rv.buffer=rb;
-  const wet=aCtx.createGain();wet.gain.value=.3;
-  master.connect(rv);rv.connect(wet);wet.connect(aCtx.destination);
-  master.connect(aCtx.destination);
-  const MEL=[523.25,493.88,440,392,349.23,392,440,493.88,523.25,0,392,440,493.88,523.25,587.33,523.25,493.88,440];
-  const PAD=[261.63,329.63,392,261.63,329.63,392];
-  function note(f,t,d,tp='sine',v=.25){
-    const o=aCtx.createOscillator(),g=aCtx.createGain();
-    o.type=tp;o.frequency.value=f;
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.05);
-    g.gain.exponentialRampToValueAtTime(.001,t+d);
-    o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.1);
-  }
-  function loop(){
-    if(!playing)return;
-    let t=aCtx.currentTime+.05;
-    MEL.forEach((f,i)=>{if(f>0)note(f,t+i*.4,.5,'sine',.22);});
-    PAD.forEach((f,i)=>{note(f/2,t+i*1.2,1.8,'triangle',.07);});
-    lto=setTimeout(loop,MEL.length*.4*1000);
-  }
-  loop();
-}
-function toggleMusic(){
-  const fab=document.getElementById('mfab');
-  if(!playing){playing=true;fab.classList.add('spin');if(!aCtx)buildMusic();else aCtx.resume();}
-  else{playing=false;fab.classList.remove('spin');if(lto)clearTimeout(lto);aCtx&&aCtx.suspend();}
-}
+const music = document.createElement('audio');
+music.src = 'song.mp3'; // ← put your song filename here
+music.loop = true;
+music.volume = 0.4;
+// autoplay on first user interaction (browser policy)
+document.addEventListener('click', ()=> music.play().catch(()=>{}), {once:true});
+document.addEventListener('touchstart', ()=> music.play().catch(()=>{}), {once:true});
 
 // ══ IDLE EFFECTS ══
 (function idleEffects(){
@@ -2020,5 +2096,19 @@ if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPer
 })();
 
 </script>
+<!-- FINAL LOVE PAGE -->
+<div id="lovePage">
+  <p class="love-line1">✦ &nbsp; always &amp; forever &nbsp; ✦</p>
+  <p class="love-main">Loveee Youuu</p>
+  <p class="love-name">Slayduu 😘</p>
+  <p class="love-emoji">💝</p>
+  <div class="love-hearts">
+    <span style="--t:1.6s;--d:0s">💕</span>
+    <span style="--t:2s;--d:.3s">♡</span>
+    <span style="--t:1.8s;--d:.6s">💖</span>
+    <span style="--t:2.2s;--d:.1s">♡</span>
+    <span style="--t:1.5s;--d:.4s">💕</span>
+  </div>
+</div>
 </body>
 </html>
